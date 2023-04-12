@@ -63,8 +63,98 @@
       "readOnly": true
     },
     "changelog": {
+      "type": "object",
       "description": "Details of changelogs associated with the issue.",
-      "readOnly": true
+      "properties": {
+        "histories": {
+          "type": "array",
+          "description": "The list of changelogs.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "author": {
+                "properties": {
+                  "self": {
+                    "type": "string"
+                  },
+                  "accountId": {
+                    "type": "string"
+                  },
+                  "emailAddress": {
+                    "type": "string"
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  },
+                  "timeZone": {
+                    "type": "string"
+                  },
+                  "accountType": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              },
+              "created": {
+                "type": "string",
+                "format": "date"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "fieldType": {
+                      "type": "string"
+                    },
+                    "fieldId": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "fromString": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "toString": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "maxResults": {
+          "type": "number",
+          "format": "int32",
+          "description": "The maximum number of results that could be on the page."
+        },
+        "startAt": {
+          "type": "number",
+          "format": "int32",
+          "description": "The index of the first item returned on the page."
+        },
+        "total": {
+          "type": "number",
+          "format": "int32",
+          "description": "The number of results on the page."
+        }
+      },
+      "additionalProperties": true
     },
     "versionedRepresentations": {
       "type": "object",
@@ -79,12 +169,18 @@
       "type": "object",
       "properties": {
         "created": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time",
           "description": "This field is not shown in schema / swagger, but exists in records and we use it as cursor fiekd. Updated may be absent. Added to solve the #4341"
         },
         "updated": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time",
           "description": "This field is not shown in schema / swagger, but exists in records and we use it as cursor fiekd. Updated may be absent. Added to solve the #4341"
         }
@@ -102,13 +198,19 @@
       "readOnly": true
     },
     "created": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time",
       "description": "This field transformed from fields attr",
       "readOnly": true
     },
     "updated": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "format": "date-time",
       "description": "This field transformed from fields attr",
       "readOnly": true
