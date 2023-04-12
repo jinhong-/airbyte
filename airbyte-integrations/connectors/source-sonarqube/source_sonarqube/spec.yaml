@@ -1,0 +1,42 @@
+documentationUrl: https://docs.airbyte.com/integrations/sources/sonar-cloud
+connectionSpecification:
+  $schema: http://json-schema.org/draft-07/schema#
+  title: Sonar Cloud Spec
+  type: object
+  required:
+    - user_token
+    - api_url
+    - component
+  additionalProperties: true
+  properties:
+    user_token:
+      title: User Token
+      type: string
+      description: >-
+        Your User Token. See <a
+        href="https://docs.sonarcloud.io/advanced-setup/user-accounts/">here</a>. The token is
+        case sensitive.
+      airbyte_secret: true
+    api_url:
+      title: SonarQube API endpoint
+      type: string
+      description: >-
+        The SonarQube API URL. Typically the sonarqube URL followed by /api
+      examples:
+        - sonar.example1.com/api
+        - sonar.example2.com/api
+    component:
+      title: Component
+      type: string
+      description: The component(project key) to retrieve data from
+      examples:
+        - airbyte-ws-order
+        - airbyte-ws-checkout
+    start_date:
+      title: Start date
+      type: string
+      description: To retrieve issues created after the given date (inclusive).
+      pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2}$
+      examples:
+        - YYYY-MM-DD
+      format: date
