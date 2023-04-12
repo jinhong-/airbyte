@@ -1,0 +1,84 @@
+version: "0.29.0"
+
+definitions:
+  selector:
+    extractor:
+      field_path:
+        - "{{ parameters['name'] }}"
+  requester:
+    url_base: "{{ config['api_url'] }}"
+    http_method: "GET"
+    request_parameters:
+      createdAfter: "{{ config['start_date'] }}"
+      createdBefore: "{{ config['end_date'] }}"
+    authenticator:
+      type: BearerAuthenticator
+      api_token: "{{ config['user_token'] }}"
+  increment_paginator:
+    type: "DefaultPaginator"
+    page_size_option:
+      inject_into: "request_parameter"
+      field_name: "ps"
+    pagination_strategy:
+      type: "PageIncrement"
+      page_size: 100
+    page_token_option:
+      type: RequestOption
+      inject_into: "request_parameter"
+      field_name: "p"
+  retriever:
+    record_selector:
+      $ref: "#/definitions/selector"
+    paginator:
+      $ref: "#/definitions/increment_paginator"
+    requester:
+      $ref: "#/definitions/requester"
+  datetime_cursor:
+    type: "DatetimeBasedCursor"
+    start_datetime:
+      datetime: "{{ config['start_date'] }}"
+      datetime_format: "%Y-%m-%d"
+    end_datetime:
+      datetime: "{{ now_utc() }}"
+      datetime_format: "%Y-%m-%d %H:%M:%S.%f+00:00"
+    step: "P1D"
+    datetime_format: "%Y-%m-%d"
+    cursor_granularity: "P1D"
+    cursor_field: "date"
+  base_stream:
+    incremental_sync:
+      $ref: "#/definitions/datetime_cursor"
+    retriever:
+      $ref: "#/definitions/retriever"
+  measures_stream:
+    $ref: "#/definitions/base_stream"
+    $parameters:
+      name: "measures"
+      primary_key: "date"
+      path: "/measures/search_history?component={{ config.get('component') }}&from={{ config.get('start_date') }}&metrics=coverage"
+    retriever:
+      record_selector:
+        extractor:
+          field_path:
+            - "{{ parameters['name'] }}"
+            - "*"
+            - history
+            - "*"
+      paginator:
+        $ref: "#/definitions/increment_paginator"
+      requester:
+        $ref: "#/definitions/requester"
+  issues_stream:
+    $ref: "#/definitions/base_stream"
+    $parameters:
+      name: "issues"
+      primary_key: "key"
+      path: "/issues/search?componentKeys={{ config.get('component') }}&createdAfter={{ config.get('start_date') }}"
+
+streams:
+  - "#/definitions/issues_stream"
+  - "#/definitions/measures_stream"
+
+check:
+  stream_names:
+    - "issues"
