@@ -6,11 +6,12 @@ definitions:
       field_path:
         - "{{ parameters['name'] }}"
   requester:
+    type: HttpRequester
     url_base: "https://sonarcloud.io/api"
     http_method: "GET"
     request_parameters:
       organization: "{{ config['organization'] }}"
-      createdAfter: "{{ config['start_date'] }}"
+      createdAfter: "{{ config.get('start_date', '2013-01-01') }}"
       createdBefore: "{{ config['end_date'] }}"
     authenticator:
       type: BearerAuthenticator
@@ -34,7 +35,21 @@ definitions:
       $ref: "#/definitions/increment_paginator"
     requester:
       $ref: "#/definitions/requester"
+  datetime_cursor:
+    type: "DatetimeBasedCursor"
+    start_datetime:
+      datetime: "{{ config.get('start_date','2013-01-01') }}"
+      datetime_format: "%Y-%m-%d"
+    end_datetime:
+      datetime: "{{ now_utc() }}"
+      datetime_format: "%Y-%m-%d %H:%M:%S.%f+00:00"
+    step: "P1D"
+    datetime_format: "%Y-%m-%d"
+    cursor_granularity: "P1D"
+    cursor_field: "date"
   base_stream:
+    # incremental_sync:
+    #   $ref: "#/definitions/datetime_cursor"
     retriever:
       $ref: "#/definitions/retriever"
   components_stream:
@@ -55,11 +70,45 @@ definitions:
       name: "metrics"
       primary_key: "id"
       path: "/metrics/search"
+  measures_stream:
+    $ref: "#/definitions/base_stream"
+    primary_key: "date"
+    retriever:
+      record_selector:
+        extractor:
+          field_path:
+            - "measures"
+            - "*"
+            - history
+            - "*"
+      paginator:
+        $ref: "#/definitions/increment_paginator"
+      requester:
+        $ref: "#/definitions/requester"
+        path: "/measures/search_history?from={{ config.get('start_date', '2013-01-01') }}&metrics={{ parameters['metrics'] }}"
+      partition_router:
+        type: "ListPartitionRouter"
+        values: "{{ config.get('component_keys') }}"
+        cursor_field: "component"
+        request_option:
+          field_name: "component"
+          inject_into: "request_parameter"
+  coverage_stream:
+    transformations:
+        - type: AddFields
+          fields:
+            - path: [ "component" ]
+              value: "{{ stream_slice.component }}"
+    $ref: "#/definitions/measures_stream"
+    $parameters:
+      metrics: "coverage"
+      name: "coverage"
 
 streams:
   - "#/definitions/components_stream"
   - "#/definitions/issues_stream"
   - "#/definitions/metrics_stream"
+  - "#/definitions/coverage_stream"
 
 check:
   stream_names:
